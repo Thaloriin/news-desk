@@ -124,7 +124,9 @@ async function loadStatic() {
   const day = state.day || (state.stats.days[0] && state.stats.days[0].day);
   let d = dayCache.get(day);
   if (!d) {
-    d = await fetch(`data/${day}.json`).then(r => r.json());
+    // 带上构建时间，避免浏览器缓存住上一次部署的旧文件
+    const v = encodeURIComponent(state.generatedAt || Date.now());
+    d = await fetch(`data/${day}.json?v=${v}`).then(r => r.json());
     dayCache.set(day, d);
   }
   state.day = day;
@@ -288,7 +290,26 @@ function hideDigest() {
   p.innerHTML = "";
 }
 
-function renderDigest(d) {
+// 精确组合没有时，逐级退到更宽的范围：去掉话题 → 去掉地区 → 去掉分类 → 全部
+function digestCandidates() {
+  const exact = digestKey();
+  const out = [exact];
+  if (exact !== "all") {
+    const parts = exact.split("|");
+    while (parts.length) {
+      parts.pop();
+      out.push(parts.length ? parts.join("|") : "all");
+    }
+  }
+  return [...new Set(out)];
+}
+
+function keyLabel(key) {
+  if (key === "all") return "全部新闻";
+  return key.split("|").map(p => p.split(":")[1]).join(" · ");
+}
+
+function renderDigest(d, note) {
   const panel = $("digestPanel");
   const points = (d.points || []).map(p => `<li>${esc(p)}</li>`).join("");
   const picks = (d.picks || []).map(p => `
@@ -302,6 +323,7 @@ function renderDigest(d) {
       <span class="digest-label">AI 总结 · ${esc(state.day || "")}</span>
       <button class="digest-close" id="digestClose">关闭</button>
     </div>
+    ${note ? `<p class="digest-note">${esc(note)}</p>` : ""}
     <p class="digest-summary">${esc(d.summary)}</p>
     ${points ? `<ul class="digest-points">${points}</ul>` : ""}
     ${picks ? `<div class="digest-picks"><h4>建议读原文</h4><ul>${picks}</ul></div>` : ""}
@@ -320,12 +342,25 @@ async function showDigest() {
   try {
     if (STATIC) {
       const dd = state.dayData;
-      const d = dd && dd.digests ? dd.digests[digestKey()] : null;
-      if (!d) {
-        panel.innerHTML = `<p class="digest-empty">这个组合还没有总结。总结只为一周内最新一天的所有筛选组合预生成；换回最新一天，或者换个条件试试。</p>`;
+      const digests = dd && dd.digests ? dd.digests : null;
+      let found = null;
+      let usedKey = null;
+
+      if (digests) {
+        for (const k of digestCandidates()) {
+          if (digests[k]) { found = digests[k]; usedKey = k; break; }
+        }
+      }
+
+      if (!found) {
+        panel.innerHTML = `<p class="digest-empty">这一天还没有生成总结，下一次自动更新后就会有。</p>`;
         return;
       }
-      renderDigest(d);
+
+      const note = usedKey === digestKey()
+        ? ""
+        : `当前筛选没有专属总结，下面是「${keyLabel(usedKey)}」的整体概括`;
+      renderDigest(found, note);
       return;
     }
 
@@ -363,7 +398,8 @@ async function boot() {
     STATIC = true;
     document.body.classList.add("is-static");
     document.querySelectorAll("[data-live-only]").forEach(el => { el.hidden = true; });
-    const idx = await fetch("data/index.json").then(x => x.json());
+    const idx = await fetch("data/index.json?t=" + Date.now()).then(x => x.json());
+    state.generatedAt = idx.generatedAt || "";
     s = { days: idx.days || [], total: idx.total || 0, srcs: idx.srcs || [], llm: false, model: null };
     $("sub").textContent = `静态版 · 更新于 ${new Date(idx.generatedAt).toLocaleString("zh-CN")}`;
     $("empty").textContent = "这一天还没有数据。";

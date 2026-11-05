@@ -6,7 +6,7 @@ const crypto = require("crypto");
 const llm = require("../src/llm");
 
 const CACHE_FILE = path.join(__dirname, "..", "data", "digests.json");
-const THROTTLE_MS = Number(process.env.DIGEST_THROTTLE_HOURS || 3) * 3600 * 1000;
+const THROTTLE_MS = Number(process.env.DIGEST_THROTTLE_HOURS || 6) * 3600 * 1000;
 const MIN_ITEMS = 6;
 const MAX_CALLS = Number(process.env.DIGEST_MAX_CALLS || 18);
 
@@ -38,7 +38,7 @@ function selectItems(items, key) {
   }));
 }
 
-function candidateKeys(items) {
+function candidateKeys(items, full) {
   const cats = new Set();
   const countries = new Set();
   const topics = new Set();
@@ -53,6 +53,9 @@ function candidateKeys(items) {
   for (const c of cats) keys.push(`cat:${c}`);
   for (const c of countries) keys.push(`country:${c}`);
   for (const t of topics) keys.push(`topic:${t}`);
+
+  // 老日期只做单维，不做组合，控制成本
+  if (!full) return keys;
 
   for (const c of cats) {
     for (const k of countries) keys.push(`cat:${c}|country:${k}`);
@@ -82,7 +85,7 @@ function toDigestItem(it) {
 // full=true 时生成所有组合；false 只生成整天的总结（老日期用）
 async function build(day, items, { full = true, maxCalls = MAX_CALLS } = {}) {
   const cache = loadCache();
-  const keys = full ? candidateKeys(items) : ["all"];
+  const keys = candidateKeys(items, full);
 
   const eligible = [];
   for (const key of keys) {
