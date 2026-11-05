@@ -18,6 +18,7 @@
     </div>
     <div class="controls">
       <select id="day"></select>
+      <button id="digestBtn" class="digest-btn" title="让 AI 总结当前筛选的这批新闻">AI 总结</button>
       <button id="refresh" data-live-only title="立即抓取">抓取</button>
       <a class="admin-btn" data-live-only href="admin.html" title="工作台：AI 配置、数据源、抓取">工作台</a>
     </div>
@@ -27,6 +28,8 @@
 <nav class="tabs wrap" id="tabs"></nav>
 <nav class="facets wrap" id="countries"></nav>
 <nav class="facets wrap" id="topics"></nav>
+
+<section id="digestPanel" class="digest-panel wrap" hidden></section>
 
 <main class="wrap">
   <div class="bar">

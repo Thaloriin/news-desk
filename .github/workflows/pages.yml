@@ -34,6 +34,7 @@ jobs:
             data/news.db
             data/news.db-wal
             data/news.db-shm
+            data/digests.json
           key: newsdb-${{ github.run_id }}
           restore-keys: |
             newsdb-
@@ -53,8 +54,8 @@ jobs:
           LLM_BASE_URL: ${{ vars.LLM_BASE_URL || 'https://api.deepseek.com/v1' }}
           LLM_MODEL: ${{ vars.LLM_MODEL || 'deepseek-chat' }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          TRANSLATE_LIMIT: "8"
-          TRANSLATE_TOP: "80"
+          TRANSLATE_LIMIT: "12"
+          TRANSLATE_TOP: "200"
         run: npm run export
 
       - uses: actions/configure-pages@v5

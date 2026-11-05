@@ -120,6 +120,7 @@ function applyFacets(facets) {
 
 // 静态模式：每次只加载一天的全量数据，筛选在浏览器里做
 async function loadStatic() {
+  hideDigest();
   const day = state.day || (state.stats.days[0] && state.stats.days[0].day);
   let d = dayCache.get(day);
   if (!d) {
@@ -127,6 +128,7 @@ async function loadStatic() {
     dayCache.set(day, d);
   }
   state.day = day;
+  state.dayData = d;
 
   let items = d.items || [];
   if (state.cat !== "all") items = items.filter(x => x.category === state.cat);
@@ -142,11 +144,13 @@ async function loadStatic() {
 
 async function load() {
   if (STATIC) return loadStatic();
+  hideDigest();
 
   const q = new URLSearchParams({ category: state.cat, country: state.country, topic: state.topic, limit: "80" });
   if (state.day) q.set("day", state.day);
   const data = await fetch("/api/news?" + q).then(r => r.json());
   state.day = data.day;
+  state.dayData = null;
   state.items = data.items;
   state.canTranslate = data.canTranslate;
   state.autoTranslate = Boolean(data.autoTranslate);
@@ -268,6 +272,80 @@ $("autoToggle").onchange = async (e) => {
     });
   } catch { /* 离线时只影响本次会话 */ }
 };
+
+/* ---------- AI 联想总结 ---------- */
+function digestKey() {
+  const parts = [];
+  if (state.cat !== "all") parts.push(`cat:${state.cat}`);
+  if (state.country !== "all") parts.push(`country:${state.country}`);
+  if (state.topic !== "all") parts.push(`topic:${state.topic}`);
+  return parts.length ? parts.join("|") : "all";
+}
+
+function hideDigest() {
+  const p = $("digestPanel");
+  p.hidden = true;
+  p.innerHTML = "";
+}
+
+function renderDigest(d) {
+  const panel = $("digestPanel");
+  const points = (d.points || []).map(p => `<li>${esc(p)}</li>`).join("");
+  const picks = (d.picks || []).map(p => `
+    <li>
+      <a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.title)}</a>
+      <span class="pick-reason">${esc(p.reason)}</span>
+    </li>`).join("");
+
+  panel.innerHTML = `
+    <div class="digest-head">
+      <span class="digest-label">AI 总结 · ${esc(state.day || "")}</span>
+      <button class="digest-close" id="digestClose">关闭</button>
+    </div>
+    <p class="digest-summary">${esc(d.summary)}</p>
+    ${points ? `<ul class="digest-points">${points}</ul>` : ""}
+    ${picks ? `<div class="digest-picks"><h4>建议读原文</h4><ul>${picks}</ul></div>` : ""}
+  `;
+  panel.hidden = false;
+  $("digestClose").onclick = hideDigest;
+}
+
+async function showDigest() {
+  const panel = $("digestPanel");
+  const btn = $("digestBtn");
+  btn.disabled = true;
+  panel.hidden = false;
+  panel.innerHTML = `<p class="digest-loading">正在总结这批新闻…</p>`;
+
+  try {
+    if (STATIC) {
+      const dd = state.dayData;
+      const d = dd && dd.digests ? dd.digests[digestKey()] : null;
+      if (!d) {
+        panel.innerHTML = `<p class="digest-empty">这个组合还没有总结。总结只为一周内最新一天的所有筛选组合预生成；换回最新一天，或者换个条件试试。</p>`;
+        return;
+      }
+      renderDigest(d);
+      return;
+    }
+
+    const d = await fetch("/api/digest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        day: state.day, category: state.cat, country: state.country, topic: state.topic
+      })
+    }).then(r => r.json());
+    if (d.error) throw new Error(d.error);
+    renderDigest(d);
+  } catch (e) {
+    panel.innerHTML = `<p class="digest-empty">总结失败：${esc(e.message)}</p>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$("digestBtn").onclick = showDigest;
 
 function esc(s) {
   return String(s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

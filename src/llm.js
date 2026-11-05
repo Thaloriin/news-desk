@@ -119,6 +119,55 @@ async function translate(title, summary) {
   };
 }
 
+// 联想总结：给一批新闻，产出整体概述、要点、建议阅读的条目编号
+async function digest(items) {
+  if (!enabled()) throw new Error("未配置 API Key，无法生成总结");
+  if (!items.length) return null;
+
+  const top = items.slice(0, 25);
+  const list = top
+    .map((it, i) => `${i}. [${it.source_name || ""}] ${it.title}${it.summary ? " — " + it.summary.slice(0, 100) : ""}`)
+    .join("\n");
+
+  const prompt = `下面是同一批新闻的标题和摘要，编号从 0 开始。请通读后输出一段中文总结。
+
+要求：
+- summary：2 到 3 句话，说清这批新闻整体在讲什么，不要罗列标题
+- points：3 到 5 条关键信息，每条一句话，要具体，不要空话
+- picks：挑 2 到 4 条最值得读原文的，i 是上面的编号，reason 说明为什么值得读，一句话
+- 只输出 JSON，格式：{"summary":"...","points":["...","..."],"picks":[{"i":0,"reason":"..."}]}
+
+新闻列表：
+${list}`;
+
+  const raw = await chat([
+    { role: "system", content: "你是一名新闻编辑，只输出合法 JSON，不输出其他文字。" },
+    { role: "user", content: prompt }
+  ], 40000);
+
+  const m = raw.match(/\{[\s\S]*\}/);
+  const obj = JSON.parse(m ? m[0] : raw);
+
+  const picks = Array.isArray(obj.picks)
+    ? obj.picks
+        .filter(p => p && Number.isInteger(Number(p.i)) && top[Number(p.i)])
+        .slice(0, 4)
+        .map(p => ({
+          i: Number(p.i),
+          reason: String(p.reason || "").trim(),
+          title: top[Number(p.i)].title,
+          url: top[Number(p.i)].url,
+          source: top[Number(p.i)].source_name
+        }))
+    : [];
+
+  return {
+    summary: String(obj.summary || "").trim(),
+    points: Array.isArray(obj.points) ? obj.points.map(p => String(p).trim()).filter(Boolean).slice(0, 5) : [],
+    picks
+  };
+}
+
 // 测试连通性：发一句最短请求
 async function ping() {
   const t0 = Date.now();
@@ -126,4 +175,4 @@ async function ping() {
   return { ok: true, ms: Date.now() - t0, reply: String(out).trim().slice(0, 40) };
 }
 
-module.exports = { enabled, rate, ping, translate, modelName };
+module.exports = { enabled, rate, ping, translate, digest, modelName };

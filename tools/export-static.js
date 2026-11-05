@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const store = require("../src/db");
 const llm = require("../src/llm");
+const digest = require("./digest");
 
 const OUT = path.join(__dirname, "..", "public", "data");
 const MAX_DAYS = Number(process.env.EXPORT_DAYS || 3);
@@ -84,6 +85,9 @@ async function main() {
   const stats = store.stats();
   const days = stats.days.slice(0, MAX_DAYS);
 
+  // 刚过零点时"今天"只有几条，把所有筛选组合的总结放到最近一个数据完整的日子
+  const fullDay = (days.find(x => x.c >= 20) || days[0] || {}).day;
+
   if (days.length) {
     const latest = store.byDay(days[0].day);
     const n = await translateLatest(latest);
@@ -110,12 +114,22 @@ async function main() {
       blocks: parseBlocks(r.blocks_json)
     }));
 
+    // 只有最新一天生成所有筛选组合的总结，老日期只留整体总结，控制成本
+    const isLatest = d.day === fullDay;
+    const dg = await digest.build(d.day, items, { full: isLatest });
+
     fs.writeFileSync(
       path.join(OUT, `${d.day}.json`),
-      JSON.stringify({ day: d.day, count: items.length, items, facets: facetsOf(all) }),
+      JSON.stringify({
+        day: d.day,
+        count: items.length,
+        items,
+        facets: facetsOf(all),
+        digests: dg.digests
+      }),
       "utf8"
     );
-    console.log(`导出 ${d.day}: ${items.length} 条`);
+    console.log(`导出 ${d.day}: ${items.length} 条，总结 ${Object.keys(dg.digests).length} 组（新生成 ${dg.calls}）`);
   }
 
   fs.writeFileSync(

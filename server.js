@@ -90,6 +90,31 @@ const server = http.createServer(async (req, res) => {
       }
     }
 
+    // 本机模式：按当前筛选条件现场生成总结
+    if (p === "/api/digest" && req.method === "POST") {
+      const b = await body(req);
+      const stats = db.stats();
+      const day = b.day || (stats.days[0] && stats.days[0].day) || new Date().toISOString().slice(0, 10);
+      const rows = db.query({
+        day,
+        category: b.category || "all",
+        country: b.country || "all",
+        topic: b.topic || "all",
+        limit: 60
+      });
+
+      if (!rows.length) {
+        return json(res, 200, { summary: "这个条件下没有新闻可总结。", points: [], picks: [] });
+      }
+
+      try {
+        const d = await llm.digest(rows.slice(0, 25));
+        return json(res, 200, d || { summary: "没有生成总结", points: [], picks: [] });
+      } catch (e) {
+        return json(res, 400, { error: String(e.message).slice(0, 200) });
+      }
+    }
+
     if (p === "/api/stats") {
       return json(res, 200, {
         ...db.stats(),

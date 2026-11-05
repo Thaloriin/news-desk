@@ -72,6 +72,27 @@ button:disabled{opacity:.5;cursor:default}
 .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 /* 兴趣话题用暖色，和地区区分 */
 .chip.interest.on{background:#8a5a2b;border-color:#8a5a2b}
+
+/* AI 联想总结 */
+.digest-btn{background:#8a5a2b;border-color:#8a5a2b}
+.digest-btn:hover{background:#744a22;border-color:#744a22}
+.digest-btn:disabled{opacity:.55;cursor:default}
+
+.digest-panel{margin:12px auto 0;padding:18px 20px;border:1px solid var(--line);
+  border-left:3px solid #8a5a2b;border-radius:6px;background:#fffdf8}
+.digest-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.digest-label{font-size:11px;letter-spacing:.08em;color:#8a5a2b;font-weight:700}
+.digest-close{background:none;border:none;color:var(--muted);font-size:12px;padding:0;cursor:pointer}
+.digest-summary{margin:0 0 12px;font-size:14.5px;line-height:1.75;color:var(--ink)}
+.digest-points{margin:0 0 14px;padding-left:18px}
+.digest-points li{font-size:13.5px;line-height:1.75;color:#3a3a35;margin-bottom:4px}
+.digest-picks h4{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:600}
+.digest-picks ul{margin:0;padding-left:18px}
+.digest-picks li{margin-bottom:8px;font-size:13.5px;line-height:1.6}
+.digest-picks a{color:var(--green);text-decoration:none;font-weight:600}
+.digest-picks a:hover{text-decoration:underline}
+.pick-reason{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.digest-empty,.digest-loading{margin:0;font-size:13px;color:var(--muted)}
 .country{color:var(--green)}
 
 /* 全屏阅读 */
