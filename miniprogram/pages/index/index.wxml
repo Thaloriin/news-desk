@@ -1,0 +1,67 @@
+<view class="header">
+  <view class="brand">
+    <view class="mark"></view>
+    <view>
+      <view class="brand-title">全球新闻台</view>
+      <view class="brand-sub">每日抓取 · 分类 · 按重要性排序</view>
+    </view>
+  </view>
+  <view class="btn" bindtap="goSettings">设置</view>
+</view>
+
+<picker mode="selector" range="{{days}}" bindchange="pickDay">
+  <view class="count">
+    <text>{{day}}</text>
+    <text class="muted small">切换日期 ›</text>
+  </view>
+</picker>
+
+<scroll-view class="tabs" scroll-x>
+  <view wx:for="{{cats}}" wx:key="*this"
+        class="tab {{cat === item ? 'on' : ''}}"
+        data-v="{{item}}" bindtap="pickCat">{{item}}</view>
+</scroll-view>
+
+<scroll-view class="facets" scroll-x>
+  <view class="chip {{country === '全部地区' ? 'on' : ''}}"
+        data-v="全部地区" bindtap="pickCountry">全部地区</view>
+  <view wx:for="{{countries}}" wx:key="*this"
+        class="chip {{country === item ? 'on' : ''}}"
+        data-v="{{item}}" bindtap="pickCountry">{{item}}</view>
+</scroll-view>
+
+<scroll-view class="facets" scroll-x>
+  <view class="chip interest {{topic === '全部话题' ? 'on' : ''}}"
+        data-v="全部话题" bindtap="pickTopic">全部话题</view>
+  <view wx:for="{{topics}}" wx:key="*this"
+        class="chip interest {{topic === item ? 'on' : ''}}"
+        data-v="{{item}}" bindtap="pickTopic">{{item}}</view>
+</scroll-view>
+
+<view class="count">
+  <text>共 {{count}} 条</text>
+</view>
+
+<view wx:if="{{error}}" class="empty">{{error}}</view>
+<view wx:elif="{{loading}}" class="empty">加载中…</view>
+<view wx:elif="{{items.length === 0}}" class="empty">这一天还没有数据</view>
+
+<view class="wrap">
+  <view wx:for="{{items}}" wx:key="id" class="item" data-idx="{{index}}" bindtap="openItem">
+    <view class="rank">{{index + 1}}</view>
+    <view class="item-body">
+      <view class="title">{{item.title}}</view>
+      <view class="meta">
+        <text class="tag">{{item.category}}</text>
+        <text>{{item.country}}</text>
+        <text>{{item.source_name}}</text>
+        <text wx:if="{{item.cluster_size > 1}}" class="hot">{{item.cluster_size}} 家报道</text>
+      </view>
+      <view class="desc" wx:if="{{item.summary}}">{{item.summary}}</view>
+      <view class="score">
+        <view class="track"><view class="fill" style="width:{{item.score}}%"></view></view>
+        <text class="muted small">重要度</text>
+      </view>
+    </view>
+  </view>
+</view>

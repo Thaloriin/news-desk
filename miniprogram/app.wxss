@@ -1,0 +1,59 @@
+page{background:#F7F5F0;color:#1A1A1A;font-size:28rpx;line-height:1.6}
+.wrap{padding:0 32rpx}
+.muted{color:#7C7A72}
+.small{font-size:22rpx}
+
+.header{display:flex;align-items:center;justify-content:space-between;padding:24rpx 32rpx 16rpx}
+.brand{display:flex;align-items:center;gap:16rpx}
+.mark{width:8rpx;height:56rpx;background:#1E3A34;border-radius:2rpx}
+.brand-title{font-size:36rpx;font-weight:700}
+.brand-sub{font-size:20rpx;color:#7C7A72;margin-top:2rpx}
+
+.tabs{white-space:nowrap;padding:8rpx 32rpx 4rpx}
+.tab{display:inline-block;padding:8rpx 24rpx;margin-right:12rpx;border:1rpx solid #DED8CC;
+  border-radius:28rpx;font-size:22rpx;color:#7C7A72}
+.tab.on{background:#1E3A34;color:#fff;border-color:#1E3A34}
+
+.facets{white-space:nowrap;padding:6rpx 32rpx 12rpx}
+.chip{display:inline-block;padding:6rpx 20rpx;margin-right:10rpx;border:1rpx solid #DED8CC;
+  border-radius:24rpx;font-size:21rpx;color:#7C7A72}
+.chip.on{background:#1A1A1A;color:#fff;border-color:#1A1A1A}
+/* 第三行是兴趣话题，用暖色区分于地区 */
+.chip.interest.on{background:#8a5a2b;border-color:#8a5a2b}
+
+.count{padding:10rpx 32rpx;font-size:21rpx;color:#7C7A72;display:flex;justify-content:space-between}
+
+.item{padding:26rpx 0;border-bottom:1rpx solid #DED8CC;display:flex;gap:20rpx}
+.rank{width:52rpx;text-align:right;font-size:32rpx;font-weight:700;color:#C8B69A;line-height:1.2}
+.item-body{flex:1;min-width:0}
+.title{font-size:30rpx;font-weight:700;line-height:1.45}
+.meta{margin-top:8rpx;font-size:21rpx;color:#7C7A72;display:flex;flex-wrap:wrap;gap:14rpx}
+.tag{color:#1E3A34;font-weight:700}
+.hot{color:#8a5a2b}
+.desc{margin-top:8rpx;font-size:24rpx;color:#4a4a45;line-height:1.6;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.score{margin-top:10rpx;display:flex;align-items:center;gap:12rpx}
+.track{width:170rpx;height:6rpx;background:#DED8CC;border-radius:3rpx;overflow:hidden}
+.fill{height:100%;background:#1E3A34}
+
+.empty{text-align:center;color:#7C7A72;font-size:24rpx;padding:120rpx 0}
+
+.reader-bar{display:flex;align-items:center;gap:16rpx;padding:20rpx 32rpx;border-bottom:1rpx solid #DED8CC}
+.reader-meta{font-size:21rpx;color:#7C7A72;flex:1}
+.btn{border:1rpx solid #1E3A34;color:#1E3A34;background:transparent;font-size:22rpx;
+  padding:8rpx 22rpx;border-radius:6rpx;line-height:1.8}
+.btn.primary{background:#1E3A34;color:#fff}
+/* 字幕式逐句对照：原文大字在上，译文小字紧随其下 */
+.reader-inner{padding:44rpx 36rpx 100rpx}
+.en-title{font-size:56rpx;line-height:1.22;font-weight:800;color:#171714;margin-bottom:18rpx}
+.zh-title{font-size:32rpx;line-height:1.5;font-weight:700;color:#6f6f68;margin-bottom:56rpx}
+.blocks{margin-top:8rpx}
+.en{font-size:34rpx;line-height:1.5;font-weight:650;color:#171714;margin-bottom:6rpx}
+.zh{font-size:26rpx;line-height:1.55;font-weight:600;color:#8a8a82;margin-bottom:30rpx}
+.hint{font-size:24rpx;color:#7C7A72;margin-top:20rpx}
+
+.field{padding:24rpx 32rpx;border-bottom:1rpx solid #DED8CC;display:flex;align-items:center;gap:20rpx}
+.field-label{width:180rpx;font-size:24rpx;color:#7C7A72}
+.field input{flex:1;font-size:24rpx;border:1rpx solid #DED8CC;border-radius:6rpx;padding:12rpx 16rpx;background:#fff}
+.btn-block{margin:28rpx 32rpx;background:#1E3A34;color:#fff;font-size:28rpx;border-radius:8rpx;padding:20rpx}
+.tip{padding:20rpx 32rpx;font-size:22rpx;color:#7C7A72;line-height:1.7}

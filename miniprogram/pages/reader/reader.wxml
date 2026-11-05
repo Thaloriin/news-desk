@@ -1,0 +1,20 @@
+<view class="reader-bar">
+  <view class="reader-meta">{{item.category}} · {{item.country}} · {{item.source_name}}</view>
+  <view class="btn" bindtap="copyLink">链接</view>
+  <view wx:if="{{!titleZh}}" class="btn primary" bindtap="translate">翻译</view>
+</view>
+
+<view class="reader-inner">
+  <view class="en-title">{{item.title}}</view>
+  <view wx:if="{{titleZh}}" class="zh-title">{{titleZh}}</view>
+
+  <view class="blocks">
+    <block wx:for="{{blocks}}" wx:key="index">
+      <view class="en">{{item.en}}</view>
+      <view wx:if="{{item.zh}}" class="zh">{{item.zh}}</view>
+    </block>
+  </view>
+
+  <view wx:if="{{hint}}" class="hint">{{hint}}</view>
+  <view class="tip">只展示标题与摘要，全文请点原文链接。译文由 AI 生成，仅供参考。</view>
+</view>

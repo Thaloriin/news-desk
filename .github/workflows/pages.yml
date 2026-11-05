@@ -1,0 +1,66 @@
+name: 抓取并发布
+
+on:
+  schedule:
+    # 每小时的第 13 分钟跑一次（UTC 时区，避开整点高峰）
+    - cron: "13 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # 新闻库要跨次运行保留，否则每次都从零开始，聚类和去重都失效
+      - name: 恢复新闻库
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/news.db
+            data/news.db-wal
+            data/news.db-shm
+          key: newsdb-${{ github.run_id }}
+          restore-keys: |
+            newsdb-
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 抓取
+        env:
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL || 'https://api.deepseek.com/v1' }}
+          LLM_MODEL: ${{ vars.LLM_MODEL || 'deepseek-chat' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: npm run collect
+
+      - name: 预翻译并导出静态数据
+        env:
+          LLM_BASE_URL: ${{ vars.LLM_BASE_URL || 'https://api.deepseek.com/v1' }}
+          LLM_MODEL: ${{ vars.LLM_MODEL || 'deepseek-chat' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          TRANSLATE_LIMIT: "24"
+        run: npm run export
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
