@@ -7,7 +7,8 @@ const llm = require("../src/llm");
 const OUT = path.join(__dirname, "..", "public", "data");
 const MAX_DAYS = Number(process.env.EXPORT_DAYS || 3);
 const MAX_ITEMS = Number(process.env.EXPORT_ITEMS || 300);
-const TRANSLATE_LIMIT = Number(process.env.TRANSLATE_LIMIT || 24);
+const TRANSLATE_LIMIT = Number(process.env.TRANSLATE_LIMIT || 8);   // 每次最多翻几条
+const TRANSLATE_TOP = Number(process.env.TRANSLATE_TOP || 80);      // 每天只翻分数最高的前 N 条
 
 function parseTopics(s) {
   try {
@@ -55,7 +56,13 @@ async function translateLatest(rows) {
     return 0;
   }
 
-  const todo = rows.filter(r => !r.blocks_json).slice(0, TRANSLATE_LIMIT);
+  // 只翻英文源；中文源不需要翻，白花钱
+  // 只翻当天分数最高的前 N 条，控制长期成本
+  const todo = rows
+    .filter(r => r.lang === "en")
+    .slice(0, TRANSLATE_TOP)
+    .filter(r => !r.blocks_json)
+    .slice(0, TRANSLATE_LIMIT);
   let done = 0;
 
   for (const r of todo) {
